@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Edit Game - Mega Game DB</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="icon.ico">
+</head>
+<body class="add-page">
+    <div id="shooting-stars"></div>
+
+    <div class="add-container">
+        <h1>🕹️ Edit Game</h1>
+
+        <form id="edit-game-form">
+            <input class="styled-input" placeholder="Title" id="title" required>
+            <input class="styled-input" placeholder="Console (e.g., PS2)" id="console" required>
+
+            <div class="image-url-wrapper">
+                <input class="styled-input" placeholder="Image URL" id="imageUrl">
+                <div id="image-preview" class="image-preview"></div>
+            </div>
+
+            <!-- ⭐ Image Search -->
+            <div class="image-search">
+                <input class="styled-input" type="text" id="image-search-input" placeholder="🔎 Search for game image...">
+                <button type="button" id="image-search-button" class="save-btn">Search Image</button>
+                <div id="image-search-results" class="image-results-container"></div>
+            </div>
+
+            <textarea class="styled-input" placeholder="Description" id="description"></textarea>
+            <input class="styled-input" type="number" placeholder="Priority (1-10)" id="priority" min="1" max="10">
+            <input class="styled-input" type="number" placeholder="User Rating (1-10)" id="userRating" min="1" max="10">
+            <input class="styled-input" type="number" placeholder="Completion (0.0 to 1.0)" step="0.01" id="completion" min="0" max="1">
+            <input class="styled-input" placeholder="Tags (comma separated)" id="tags">
+
+            <select class="styled-input" id="status">
+                <option>Backlogged</option>
+                <option>In Progress</option>
+                <option>Beaten</option>
+            </select>
+
+            <button type="submit" class="save-btn">💾 Save Changes</button>
+            <a href="index.html" class="cancel-link">Cancel</a>
+        </form>
+    </div>
+
+    <script src="edit-script.js"></script>
+
+    <script>
+        // ⭐ Handle image search inside Edit Page
+        const imageSearchButton = document.getElementById('image-search-button');
+        imageSearchButton?.addEventListener('click', async () => {
+            const query = document.getElementById('image-search-input').value.trim();
+            if (!query) return;
+
+            const apiKey = '8a845a8c304d421d9f97d3e8336a5903'; // your real RAWG API key
+            const url = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(query)}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const resultsDiv = document.getElementById('image-search-results');
+            resultsDiv.innerHTML = '';
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(game => {
+                    if (!game.background_image) return;
+
+                    const img = document.createElement('img');
+                    img.src = game.background_image;
+                    img.alt = game.name;
+                    img.style.width = '80px';
+                    img.style.height = 'auto';
+                    img.style.margin = '5px';
+                    img.style.borderRadius = '8px';
+                    img.style.cursor = 'pointer';
+                    img.style.boxShadow = '0 0 5px #00ffee';
+
+                    img.addEventListener('click', () => {
+                        const imageUrlInput = document.getElementById('imageUrl');
+                        const imagePreviewDiv = document.getElementById('image-preview');
+
+                        imageUrlInput.value = game.background_image;
+                        imagePreviewDiv.innerHTML = `<img src="${game.background_image}" alt="Preview" onerror="this.style.display='none';">`;
+                        resultsDiv.innerHTML = ''; // clear results
+                    });
+
+                    resultsDiv.appendChild(img);
+                });
+            } else {
+                resultsDiv.innerHTML = '<p>No images found.</p>';
+            }
+        });
+
+        // ⭐ Update preview when typing URL manually
+        const imageUrlInput = document.getElementById('imageUrl');
+        const imagePreviewDiv = document.getElementById('image-preview');
+
+        imageUrlInput?.addEventListener('input', () => {
+            const url = imageUrlInput.value.trim();
+            if (url) {
+                imagePreviewDiv.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none';">`;
+            } else {
+                imagePreviewDiv.innerHTML = '';
+            }
+        });
+    </script>
+
+</body>
+</html>
